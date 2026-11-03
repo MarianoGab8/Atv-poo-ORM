@@ -1,0 +1,251 @@
+#BlueJ class context
+#Mon Nov 02 22:26:13 BRT 2026
+comment0.target=Database
+comment1.params=databaseName
+comment1.target=Database(java.lang.String)
+comment2.target=com.j256.ormlite.jdbc.JdbcConnectionSource getConnection()
+comment3.target=void close()
+numComments=4
+
+import java.sql.*;
+import com.j256.ormlite.jdbc.JdbcConnectionSource;
+
+public class Database {
+
+    private String databaseName = null;
+    private JdbcConnectionSource connection = null;
+
+    public Database(String databaseName) {
+        this.databaseName = databaseName;
+    }
+
+    public JdbcConnectionSource getConnection() throws SQLException {
+        if (databaseName == null) {
+            throw new SQLException("database name is null");
+        }
+
+        if (connection == null) {
+            try {
+                connection = new JdbcConnectionSource(
+                    "jdbc:sqlite:" + databaseName
+                );
+            } catch (Exception e) {
+                System.err.println(e.getMessage());
+            }
+
+            System.out.println("Banco de dados aberto!");
+        }
+
+        return connection;
+    }
+
+    public void close() {
+        if (connection != null) {
+            try {
+                connection.close();
+                connection = null;
+            } catch (Exception e) {
+                System.err.println(e);
+            }
+        }
+    }
+}
+#BlueJ package file
+dependency1.from=QuadradoRepository
+dependency1.to=Database
+dependency1.type=UsesDependency
+dependency2.from=QuadradoRepository
+dependency2.to=Quadrado
+dependency2.type=UsesDependency
+editor.fx.0.height=739
+editor.fx.0.width=816
+editor.fx.0.x=1014
+editor.fx.0.y=171
+objectbench.height=93
+objectbench.width=760
+package.divider.horizontal=0.599476439790576
+package.divider.vertical=0.8015873015873016
+package.editor.height=397
+package.editor.width=638
+package.editor.x=1029
+package.editor.y=216
+package.frame.height=604
+package.frame.width=800
+package.numDependencies=2
+package.numTargets=3
+package.showExtends=true
+package.showUses=true
+project.charset=UTF-8
+readme.height=60
+readme.name=@README
+readme.width=49
+readme.x=10
+readme.y=10
+target1.height=70
+target1.name=Quadrado
+target1.showInterface=false
+target1.type=ClassTarget
+target1.width=120
+target1.x=270
+target1.y=100
+target2.height=70
+target2.name=Database
+target2.showInterface=false
+target2.type=ClassTarget
+target2.width=120
+target2.x=60
+target2.y=100
+target3.height=70
+target3.name=QuadradoRepository
+target3.showInterface=false
+target3.type=ClassTarget
+target3.width=150
+target3.x=150
+target3.y=210
+
+#BlueJ class context
+#Mon Nov 02 22:28:59 BRT 2026
+comment0.target=Quadrado
+comment1.target=Quadrado()
+comment2.params=lado
+comment2.target=Quadrado(double)
+comment3.target=int getId()
+comment4.target=double getLado()
+comment5.params=lado
+comment5.target=void setLado(double)
+comment6.target=double calcularArea()
+comment7.target=java.lang.String toString()
+numComments=8
+
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
+
+@DatabaseTable(tableName = "quadrados")
+public class Quadrado {
+
+    @DatabaseField(generatedId = true)
+    private int id;
+
+    @DatabaseField
+    private double lado;
+
+    public Quadrado() {
+    }
+
+    public Quadrado(double lado) {
+        this.lado = lado;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public double getLado() {
+        return lado;
+    }
+
+    public void setLado(double lado) {
+        this.lado = lado;
+    }
+
+    public double calcularArea() {
+        return lado * lado;
+    }
+
+    @Override
+    public String toString() {
+        return "Quadrado [id=" + id + ", lado=" + lado
+            + ", area=" + calcularArea() + "]";
+    }
+}
+#BlueJ class context
+#Mon Nov 02 22:59:55 BRT 2026
+comment0.target=QuadradoRepository
+comment1.target=QuadradoRepository()
+comment2.params=quadrado
+comment2.target=void cadastrar(Quadrado)
+comment3.params=id
+comment3.target=Quadrado buscarPorId(int)
+comment4.target=java.util.List listarTodos()
+comment5.params=quadrado
+comment5.target=void atualizar(Quadrado)
+comment6.params=quadrado
+comment6.target=void excluir(Quadrado)
+comment7.target=void excluirTodos()
+comment8.target=void fechar()
+numComments=9
+
+import java.sql.SQLException;
+import java.util.List;
+
+import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.dao.DaoManager;
+import com.j256.ormlite.jdbc.JdbcConnectionSource;
+import com.j256.ormlite.support.ConnectionSource;
+import com.j256.ormlite.table.TableUtils;
+
+public class QuadradoRepository {
+
+    private Database database;
+    private ConnectionSource connection;
+    private Dao<Quadrado, Integer> dao;
+
+    public QuadradoRepository() throws SQLException {
+        database = new Database("quadrados.db");
+        connection = database.getConnection();
+
+        TableUtils.createTableIfNotExists(
+            connection, Quadrado.class
+        );
+
+        dao = DaoManager.createDao(
+            connection, Quadrado.class
+        );
+    }
+
+    public void cadastrar(Quadrado quadrado)
+            throws SQLException {
+        dao.create(quadrado);
+    }
+
+    public Quadrado buscarPorId(int id)
+            throws SQLException {
+        return dao.queryForId(id);
+    }
+
+    public List<Quadrado> listarTodos()
+            throws SQLException {
+        return dao.queryForAll();
+    }
+
+    public void atualizar(Quadrado quadrado)
+            throws SQLException {
+        dao.update(quadrado);
+    }
+
+    public void excluir(Quadrado quadrado)
+            throws SQLException {
+        dao.delete(quadrado);
+    }
+    
+    public void excluirTodos() throws SQLException {
+    List<Quadrado> quadrados = dao.queryForAll();
+    dao.delete(quadrados);
+    }
+
+    public void fechar() {
+        database.close();
+    }
+}
+----------------------------------------------------------------------------
+Este é o arquivo README do projeto. Você deve descrever aqui o seu projeto.
+Informe ao usuário (alguém que não sabe nada sobre este projeto!) tudo que
+ele/ela precisa saber. Os comentários devem incluir, pelo menos:
+------------------------------------------------------------------------
+
+TÍTULO DO PROJETO:
+OBJETIVO DO PROJETO:
+VERSÃO ou DATA:
+COMO INICIAR O PROJETO:
+AUTORES:
+INSTRUÇÕES PARA O USUÁRIO:
